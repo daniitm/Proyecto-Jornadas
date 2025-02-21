@@ -41,22 +41,23 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'tipo_inscripcion' => $request->tipo_inscripcion, // Agregar tipo_inscripcion
+            'tipo_inscripcion' => $request->tipo_inscripcion,
         ]);
 
-        // Determinar el plan basado en el tipo de inscripción
         $plan = match ($request->tipo_inscripcion) {
             'presencial' => 10.00,
             'virtual' => 5.00,
             'gratuita' => 0.00,
         };
 
-        // Crear el registro de pago
+        // Si el usuario es estudiante, el pago se marca como 'completado'
+        $estadoPago = str_ends_with($user->email, '@franciscoayala.es') ? 'completado' : 'pendiente';
+
         Pago::create([
             'user_id' => $user->id,
             'plan' => $plan,
-            'estado' => 'pendiente',
-            'transaction_id' => '', // Dejar vacío por ahora
+            'estado' => $estadoPago,
+            'transaction_id' => '', 
         ]);
 
         event(new Registered($user));

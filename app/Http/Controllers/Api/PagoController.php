@@ -26,6 +26,13 @@ class PagoController extends Controller
         Log::info('PayPal client initialized');
     }
 
+    public function index()
+    {
+        $pagos = Pago::with('user')->get();
+        
+        return response()->json($pagos);
+    }
+
     public function payWithPayPal(Request $request, $userId)
     {
         Log::info('payWithPayPal method called for user ID: ' . $userId);

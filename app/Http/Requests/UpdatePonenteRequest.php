@@ -15,7 +15,7 @@ class UpdatePonenteRequest extends FormRequest
     {
         return [
             'nombre' => 'sometimes|required|string|max:255',
-            'fotografia' => 'nullable|string|max:255',
+            'fotografia' => 'nullable|image|max:2048', // Máximo 2MB
             'areas_experiencia' => 'sometimes|required|string',
             'enlace_red_social' => 'nullable|string|max:255',
         ];

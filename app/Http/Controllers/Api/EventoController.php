@@ -115,4 +115,10 @@ class EventoController extends Controller
         $eventos = Evento::all();
         return view('user.eventos.index', compact('eventos'));
     }
+
+    public function welcomeView()
+    {
+        $eventos = Evento::with('ponente')->get();
+        return view('welcome', compact('eventos'));
+    }
 }

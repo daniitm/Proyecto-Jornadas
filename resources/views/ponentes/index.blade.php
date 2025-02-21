@@ -61,7 +61,7 @@
     <div id="modal" class="fixed inset-0 hidden bg-gray-900 bg-opacity-50 flex justify-center items-center">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-1/3">
             <h2 id="modal-title" class="text-lg font-bold mb-4">Crear Ponente</h2>
-            <form id="modal-form" onsubmit="event.preventDefault(); savePonente();">
+            <form id="modal-form" onsubmit="event.preventDefault(); savePonente();" enctype="multipart/form-data">                
                 @csrf
                 <input type="hidden" id="ponente-id">
                 <div class="mb-4">
@@ -77,8 +77,8 @@
                     <input type="url" id="enlace_red_social" name="enlace_red_social" class="w-full border rounded p-2" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Fotografía (URL)</label>
-                    <input type="url" id="fotografia" name="fotografia" class="w-full border rounded p-2" required>
+                    <label class="block text-sm font-bold mb-2">Fotografía</label>
+                    <input type="file" id="fotografia" name="fotografia" accept="image/*" class="w-full border rounded p-2">
                 </div>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Guardar</button>
                 <button type="button" onclick="closeModal()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</button>
@@ -103,7 +103,11 @@
             document.getElementById('nombre').value = ponente.nombre;
             document.getElementById('areas_experiencia').value = ponente.areas_experiencia;
             document.getElementById('enlace_red_social').value = ponente.enlace_red_social;
-            document.getElementById('fotografia').value = ponente.fotografia;
+            let imgPreview = document.getElementById('img-preview');
+            if (imgPreview) {
+                imgPreview.src = ponente.fotografia || '';
+                imgPreview.style.display = ponente.fotografia ? 'block' : 'none';
+            }
             document.getElementById('modal').classList.remove('hidden');
         }
 
@@ -114,19 +118,21 @@
         async function savePonente() {
             let id = document.getElementById('ponente-id').value;
             let url = id ? `/api/ponentes/${id}` : '/api/ponentes';
-            let method = id ? 'PUT' : 'POST';
+            let method = 'POST'; // Siempre POST para manejar archivos
 
-            let data = {
-                nombre: document.getElementById('nombre').value,
-                areas_experiencia: document.getElementById('areas_experiencia').value,
-                enlace_red_social: document.getElementById('enlace_red_social').value,
-                fotografia: document.getElementById('fotografia').value
-            };
+            let formData = new FormData(document.getElementById('modal-form'));
+            if (id) {
+                formData.append('_method', 'PUT'); // Para simular PUT con FormData
+                // Si no se seleccionó una nueva imagen, envía null para indicar que se debe mantener la imagen actual
+                if (!formData.get('fotografia').size) {
+                    formData.set('fotografia', null);
+                }
+            }
 
             let response = await fetch(url, {
                 method: method,
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify(data)
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: formData
             });
 
             if (response.ok) {

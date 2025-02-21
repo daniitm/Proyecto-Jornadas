@@ -7,6 +7,7 @@ use App\Models\Ponente;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePonenteRequest;
 use App\Http\Requests\UpdatePonenteRequest;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\Log;
 
@@ -21,10 +22,9 @@ class PonenteController extends Controller
 
     public function store(StorePonenteRequest $request)
     {
-        Log::info('Intentando crear un nuevo Ponente', $request->all());
         try {
-            $ponente = Ponente::create($request->validated());
-            Log::info('Ponente creado exitosamente', ['id' => $ponente->id]);
+            $data = $request->validated();
+            $ponente = Ponente::create($data);
             return response()->json($ponente, 201);
         } catch (\Exception $e) {
             Log::error('Error al crear Ponente: ' . $e->getMessage());
@@ -39,24 +39,32 @@ class PonenteController extends Controller
     }
 
     public function update(UpdatePonenteRequest $request, $id)
-    {
-        $ponente = Ponente::findOrFail($id);
-        $ponente->update($request->validated());
-        return response()->json(['message' => 'Ponente actualizado', 'ponente' => $ponente]);
+{
+    $ponente = Ponente::findOrFail($id);
+    $data = $request->validated();
+    
+    if ($request->hasFile('fotografia')) {
+        $ponente->fotografia = $request->file('fotografia');
+    } elseif ($request->has('fotografia') && is_null($request->fotografia)) {
+        $ponente->fotografia = null;
     }
+    
+    $ponente->fill($data);
+    $ponente->save();
+    
+    return response()->json(['message' => 'Ponente actualizado', 'ponente' => $ponente]);
+}
 
-    public function destroy(Ponente $ponente)
-    {
-        Log::info('Intentando eliminar Ponente', ['id' => $ponente->id]);
-        try {
-            $ponente->delete();
-            Log::info('Ponente eliminado exitosamente', ['id' => $ponente->id]);
-            return response()->json(null, 204);
-        } catch (\Exception $e) {
-            Log::error('Error al eliminar Ponente: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al eliminar Ponente'], 500);
-        }
+public function destroy(Ponente $ponente)
+{
+    try {
+        $ponente->delete();
+        return response()->json(null, 204);
+    } catch (\Exception $e) {
+        Log::error('Error al eliminar Ponente: ' . $e->getMessage());
+        return response()->json(['error' => 'Error al eliminar Ponente'], 500);
     }
+}
 
     public function vistaPonentes()
     {

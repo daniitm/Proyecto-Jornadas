@@ -37,20 +37,24 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $user = Auth::user();
-        
+
+        // Si el usuario es estudiante, no verificar pago y permitir acceso inmediato
+        if ($user->isEstudiante()) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('dashboard', absolute: false))->with('role', $user->role);
+        }
+
         // Verificar el estado del pago
         $pago = Pago::where('user_id', $user->id)->latest()->first();
         
         if ($pago && $pago->estado === 'pendiente') {
-            Auth::logout(); // Cerrar la sesión
+            Auth::logout();
             return redirect()->route('paypal.pay', ['user_id' => $user->id]);
         }
 
         $request->session()->regenerate();
 
-        $role = $user->role;
-
-        return redirect()->intended(route('dashboard', absolute: false))->with('role', $role);
+        return redirect()->intended(route('dashboard', absolute: false))->with('role', $user->role);
     }
 
     /**

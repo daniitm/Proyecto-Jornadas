@@ -7,9 +7,13 @@ use App\Http\Controllers\Api\PonenteController;
 use App\Http\Controllers\Api\PagoController;
 use App\Http\Controllers\Api\InscripcionController;
 
+/*
 Route::get('/', function () {
     return view('welcome');
 });
+*/
+
+Route::get('/', [EventoController::class, 'welcomeView']);
 
 Route::get('/dashboard', function () {
     return view('dashboard');

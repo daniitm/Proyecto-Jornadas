@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Providers;
+use App\Models\Pago;
+use App\Observers\PagoObserver;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -17,8 +19,8 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        Pago::observe(PagoObserver::class);
     }
 }
